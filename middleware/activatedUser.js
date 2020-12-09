@@ -4,20 +4,24 @@ const mongoClient = mongodb.MongoClient;
 const dbUrl = process.env.DB_URL || "mongodb://127.0.0.1:27017";
 const dbName = process.env.DB_NAME;
 
-async function userRegistered(req, res, next) {
+async function userActivated(req, res, next) {
     try {
         let clientInfo = await mongoClient.connect(dbUrl);
         let db = clientInfo.db(dbName);
         let data = await db.collection("users").findOne({
-            email: req.body.email
+            $and: [{
+                email: req.body.email
+            }, {
+                isActivated: true
+            }]
         });
         if (data) {
-            res.status(200).json({
-                status: "rejected",
-                message: "Email already taken"
-            });
-        } else {
             next();
+        } else {
+            res.status(200).json({
+                status: "failed",
+                message: "Please activate your account before login."
+            });
         }
     } catch (error) {
         console.log(error);
@@ -27,4 +31,4 @@ async function userRegistered(req, res, next) {
     }
 }
 
-module.exports = userRegistered;
+module.exports = userActivated;
