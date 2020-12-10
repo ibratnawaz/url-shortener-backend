@@ -30,8 +30,8 @@ app.post("/register", [registered, checkPassword], async (req, res) => {
         req.body.password = await hashHelper.generateHash(req.body.password);
         req.body.isActivated = false;
         delete req.body.confirm_password;
-        let message = 'Click the below link to activate your account.'
-        let apiLink = 'http://localhost:3000/activate?activation_string'
+        let message = 'Click the below link to activate your account.';
+        let apiLink = 'https://url-shortener-backend-node.herokuapp.com/activate?activation_string';
         req.body.activationString = await mailHelper(message, req.body.email, apiLink);
         await db.collection("users").insertOne(req.body);
         res.status(200).json({
@@ -133,7 +133,7 @@ app.get("/activate", async (req, res) => {
                 }
             });
             res.send(`<p>Account activated. Click
-                <a href="http://localhost:8000/login.html">here</a> to login.</p>`);
+                <a href="https://ui-short-url.netlify.app/login.html">here</a> to login.</p>`);
         } else {
             res.send('<p>link expired</p>')
         }
@@ -154,8 +154,8 @@ app.post("/password/forgot", async (req, res) => {
         });
 
         if (result) {
-            let message = 'Click the below link to reset your password. It is one-time link, once you changed your password using the link, it will be expired.'
-            let apiLink = 'http://localhost:3000/password/check/token?reset_string'
+            let message = 'Click the below link to reset your password. It is one-time link, once you changed your password using the link, it will be expired.';
+            let apiLink = 'https://url-shortener-backend-node.herokuapp.com/password/check/token?reset_string';
             req.body.resetString = await mailHelper(message, req.body.email, apiLink, result._id);
             await db.collection("users").updateOne({
                 _id: result._id
@@ -200,7 +200,7 @@ app.get("/password/check/token", async (req, res) => {
         });
 
         if (result) {
-            res.redirect(`http://localhost:8000/reset_password.html?uid=${uid}`)
+            res.redirect(`https://ui-short-url.netlify.app/reset_password.html?uid=${uid}`);
         } else {
             res.send('link expired');
         }
