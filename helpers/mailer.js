@@ -2,7 +2,7 @@ const nodemailer = require("nodemailer");
 const cryptoRandomString = require("crypto-random-string");
 
 
-let generateMail = function (message, email, apiLink) {
+let generateMail = function (message, email, apiLink, uid = '') {
     return new Promise(async function (resolve, reject) {
         try {
             let transporter = nodemailer.createTransport({
@@ -19,14 +19,22 @@ let generateMail = function (message, email, apiLink) {
                 length: 32,
                 type: 'url-safe'
             });
-            // Click the below link to reset your password. It is one-time link, once you 
-            // changed your password using the link, it will be expired.
-            // http://localhost:3000/register?reset_string
+
+            let finalStr;
+            let subject;
+            if (uid) {
+                finalStr = `${str}_._${uid}`;
+                subject = 'Reset password';
+            } else {
+                finalStr = str;
+                subject = 'Activate account';
+            }
+
             let info = await transporter.sendMail({
-                from: `Mini-URL <${process.env.MAIL_USERNAME}>`, // sender address
+                from: `Short URL <${process.env.MAIL_USERNAME}>`, // sender address
                 to: `${email}`, // list of receivers
-                subject: `Reset password`, // Subject line
-                html: `<b>${message}</b><br><p>${apiLink}=${str}</p>`,
+                subject: `${subject}`, // Subject line
+                html: `<b>${message}</b><br><p>${apiLink}=${finalStr}</p>`,
             });
             resolve(str);
         } catch (error) {
