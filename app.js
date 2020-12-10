@@ -145,7 +145,7 @@ app.get("/activate", async (req, res) => {
     }
 });
 
-app.post("/password/forgot", async (req, res) => {
+app.post("/password/forgot", [checkUser], async (req, res) => {
     try {
         let clientInfo = await mongoClient.connect(dbUrl);
         let db = clientInfo.db(dbName);
