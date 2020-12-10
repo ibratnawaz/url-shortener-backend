@@ -16,7 +16,7 @@ let generateMail = function (message, email, apiLink) {
             });
 
             let str = cryptoRandomString({
-                length: 20,
+                length: 32,
                 type: 'url-safe'
             });
             // Click the below link to reset your password. It is one-time link, once you 

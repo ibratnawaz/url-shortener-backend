@@ -78,6 +78,7 @@ app.post("/login", [checkUser, activated], async (req, res) => {
             res.json({
                 status: "success",
                 message: "Login successful",
+                userId: data._id,
                 token
             });
         } else {
@@ -95,12 +96,71 @@ app.post("/login", [checkUser, activated], async (req, res) => {
     }
 });
 
-app.get("/verify", async (req, res) => {
-    let decodedData = await jwt.verify(req.headers.authorization, process.env.JWT_KEY);
-    res.json({
-        data: decodedData
-    });
+app.get("/verify/:id", async (req, res) => {
+    try {
+        let decodedData = jwt.verify(req.headers.authorization, process.env.JWT_KEY);
+        if (decodedData.userId == req.params.id) {
+            let clientInfo = await mongoClient.connect(dbUrl);
+            let db = clientInfo.db(dbName);
+            let data = await db.collection('users').findOne({
+                _id: objectID(req.params.id)
+            });
+            if (data) {
+                res.status(200).json({
+                    status: "success",
+                    is_loggedIn: true
+                });
+            } else {
+                res.status(400).json({
+                    status: "failed",
+                    is_loggedIn: false
+                });
+            }
+        } else {
+            res.status(400).json({
+                status: "failed",
+                is_loggedIn: false
+            });
+        }
+    } catch (error) {
+        // console.log(error);
+        res.status(400).json({
+            status: "failed",
+            error
+        });
+    }
 });
+
+app.get("/activate", async (req, res) => {
+    try {
+        let clientInfo = await mongoClient.connect(dbUrl);
+        let db = clientInfo.db(dbName);
+        let data = await db.collection('users').findOne({
+            activationString: req.query.activation_string
+        });
+        if (data) {
+            await db.collection('users').updateOne({
+                _id: objectID(data._id)
+            }, {
+                $set: {
+                    activationString: '',
+                    isActivated: true
+                }
+            });
+            res.send(`<p>Account activated. Click
+                <a href="http://localhost:8000/login.html">here</a> to login.</p>`);
+        } else {
+            res.send('<p>link expired</p>')
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({
+            error
+        });
+    }
+});
+
+
 
 app.listen(port, () => {
     console.log(`App listening on port ${port}`);
